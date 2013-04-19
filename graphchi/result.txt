@@ -1,0 +1,73 @@
+Print top 20 vertices:
+1. 163075	626.053
+2. 41909	622.983
+3. 597621	578.524
+4. 537039	556.653
+5. 384666	503.063
+6. 32163	498.957
+7. 504140	496.971
+8. 486980	487.504
+9. 605856	478.424
+10. 551829	462.138
+11. 558791	445.643
+12. 751384	435.813
+13. 7314	425.098
+14. 173976	413.794
+15. 213432	412.788
+16. 765334	410.851
+17. 425770	409.925
+18. 885605	390.005
+19. 407610	389.417
+20. 691633	378.207
+
+ === REPORT FOR pagerank() ===
+[Numeric]
+compression:		1
+execthreads:		2
+loadthreads:		4
+niothreads:		2
+niters:		4
+nshards:		2
+nvertices:		916428
+scheduler:		0
+serialized-updates:		2.99708e+06	(count: 8, min: 360338, max: 388932, avg: 374635)
+stripesize:		1.07374e+09
+updates:		3.66571e+06
+work:		4.08403e+07
+[Timings]
+blockload:		0.099784s	 (count: 20, min: 2.2e-05s, max: 0.015714, avg: 0.0049892s)
+commit:		1.20574s	 (count: 16, min: 0.027778s, max: 0.097317, avg: 0.0753588s)
+execute-updates:		0.897284s	 (count: 8, min: 0.052837s, max: 0.140893, avg: 0.11216s)
+iomgr_init:		0.000211 s
+memoryshard_create_edges:		4.98936s	 (count: 8, min: 0.602026s, max: 0.646671, avg: 0.623671s)
+memshard_commit:		1.21721s	 (count: 8, min: 0.096485s, max: 0.188463, avg: 0.152151s)
+preada_now:		0.511307s	 (count: 52, min: 1.4e-05s, max: 0.055121, avg: 0.00983283s)
+pwritea_now:		2.42312s	 (count: 40, min: 0.001385s, max: 0.100833, avg: 0.060578s)
+read_next_vertices:		1.11757s	 (count: 8, min: 0.12337s, max: 0.17453, avg: 0.139696s)
+runtime:		8.83516 s
+stripedio_wait_for_reads:		3.1e-05s	 (count: 8, min: 3e-06s, max: 5e-06, avg: 3.875e-06s)
+stripedio_wait_for_writes:		2.8e-05s	 (count: 12, min: 1e-06s, max: 3e-06, avg: 2.33333e-06s)
+[Other]
+app:	pagerank
+engine:	default
+file:	MyConf/web-Google.txt
+GNU gdb (Ubuntu/Linaro 7.4-2012.04-0ubuntu2) 7.4-2012.04
+Copyright (C) 2012 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i686-linux-gnu".
+For bug reporting instructions, please see:
+<http://bugs.launchpad.net/gdb-linaro/>...
+Reading symbols from /home/ycz/GraduationDesign/graphchi/bin/example_apps/pagerank...done.
+(gdb) 
+(gdb) 
+(gdb) 
+(gdb) 
+(gdb) 
+(gdb) ^C(gdb) ^C(gdb) ^C(gdb) 
+(gdb) 
+(gdb) 
+(gdb) 
+(gdb) :q^C(gdb) ^C(gdb) ^C(gdb) ^C(gdb) ^C(gdb) ^C(gdb) 
