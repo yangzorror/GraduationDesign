@@ -9,55 +9,59 @@
 
 using namespace graphchi;
 
-struct cuda_vertex
+void PageRank(std::vector<svertex_t> &vertices, int iter_num)
 {
-  
-}
-
-
-void PageRank(std::vector<svertex_t> &vertices)
-{
+  cudaError_t err = cudaSuccess;
   size_t size = vertices.size();
+  float *vertices = (float *)malloc(size * sizeof(float));
+  int *edge_index = (int *)malloc(size * 2 * sizeof(float));
+  int tot_edges = 0;
 
-}
+  for (int i = 0; i < size; i++)
+  {
+    tot_edges = tot_edges + vertices[i].num_outedges() + vertices[i].num_inedges();
+    edge_index[i * 2 + 1] = vertices[i].num_outedges();
+    edge_index[i*2] = vertices[i].num_inedges();
+    vertices[i] = vertices[i].get_data();
+  }
+
+  float *edges = (float *)malloc(tot_edges * sizeof(float));
+  int j = 0;
+  for (int i =0; i < size; i++)
+  {
+    for (int k = 0; k < vertices[i].num_inedges(); k++)
+    {
+      edges[j] = vertices[i].inedges[k]->get_data();
+      j++;
+    }
+    for (int k = 0; k < vertices[i].num_outedges(); k++)
+    {
+      edges[j] = vertices[i].outedges[k]->get_data();
+      j++;
+    }
+  }
+  float *d_vertices = NULL;
+  err = cudaMalloc((void **)&d_vertices, size * sizeof(float));
+  err = cudaMemcpy(d_vertices, vertices, size * sizeof(float), cudaMemcpyHostToDevice);
+  float *d_edge_index = NULL;
+  err = cudaMalloc((void **)&d_edge_index, size * 2 * sizeof(float));
+  err = cudaMemcpy(d_edge_index, edge_index, size * 2 * sizeof(float), cudaMemcpyHostToDevice);
+  float *d_edges = NULL;
+  err = cudaMalloc((void **)&d_edges, tot_edges *  sizeof(float));
+  err = cudaMemcpy(d_edges, edges, tot_edges *  sizeof(float), cudaMemcpyHostToDevice);
+  int threadsPerBlock = 256;
+  int blocksPerGrid = (size + threadsPerBlock - 1) / threadsPerBlock;
+  KernelPageRank<<<blocksPerGrid, threadsPerBlock>>>(d_vertices, d_edge_index, d_edges, size);
+
+}  
 
 __global__ void
-KernelPageRank(const int num, std::vector<svertex_t> &vertices)
+KernelPageRank(const int num, const float *d_vertices, const float *d_edge_index, const float *d_edges)
 {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  verices[i] 
-}
+  float sum = 0;
+  float pagerank = 0;
+  float pagerankcount = 0;
 
-
-
-int main(int argc, const char ** argv) {
-   graphchi_init(argc, argv);
-   metrics m("pagerank");
- 
-   /* Parameters */
-   std::string filename    = get_option_string("file"); // Base filename
-   int niters              = get_option_int("niters", 4);
-   bool scheduler          = false;                    // Non-dynamic version of pagerank.
-   int ntop                = get_option_int("top", 20);
-
-   /* Process input file - if not already preprocessed */
-   int nshards             = convert_if_notexists<EdgeDataType>(filename, get_option_string("nshards", "auto"));
-
-   /* Run */
-   graphchi_engine<float, float> engine(filename, nshards, scheduler, m);
-   engine.set_modifies_inedges(false); // Improves I/O performance.
-   PagerankProgram program;
-   engine.run(program, niters);
-   
-   /* Output top ranked vertices */
-   std::vector< vertex_value<float> > top = get_top_vertices<float>(filename, ntop);
-   std::cout << "Print top " << ntop << " vertices:" << std::endl;
-   for(int i=0; i < (int)top.size(); i++) {
-     std::cout << (i+1) << ". " << top[i].vertex << "\t" << top[i].value << std::endl;
-   }
-
-   metrics_report(m);
-   return 0;
 }
 
                                   
