@@ -55,6 +55,9 @@
 #include "shards/slidingshard.hpp"
 #include "util/pthread_tools.hpp"
 
+//#include <cuda.h>
+//#include <builtin_types.h>
+#include <cuda_runtime.h>
 
 namespace graphchi {
     
@@ -434,7 +437,38 @@ namespace graphchi {
             m.stop_time(me, "execute-updates");
         }
         
+	void PageRankAPI(GraphChiProgram<VertexDataType, EdgeDataType, svertex_t> &userprogram, std::vector<svertex_t> &pr_vertices, int iter_num)
+	{
+	  size_t size = pr_vertices.size();
+	  float *h_vertices = (float *)malloc(size * sizeof(float));
+	  int *edge_index = (int *)malloc(size * 2 * sizeof(float));
+	  int tot_edges = 0;
 
+	  for (int i = 0; i < size; i++)
+          {
+	    tot_edges = tot_edges + pr_vertices[i].num_outedges() + pr_vertices[i].num_inedges();
+	    edge_index[i * 2 + 1] = pr_vertices[i].num_outedges();
+	    edge_index[i*2] = pr_vertices[i].num_inedges();
+	    h_vertices[i] = pr_vertices[i].get_data();
+	  }
+
+	  float *edges = (float *)malloc(tot_edges * sizeof(float));
+          int j = 0;
+          for (int i =0; i < size; i++)
+	  {
+	    for (int k = 0; k < pr_vertices[i].num_inedges(); k++)
+	    {
+	      edges[j] = pr_vertices[i].inedge(k)->get_data();
+              j++;
+            }
+	    for (int k = 0; k < pr_vertices[i].num_outedges(); k++)
+	    {
+	      edges[j] = pr_vertices[i].outedge(k)->get_data();
+	      j++;
+	    }
+	  }
+	  userprogram.PageRank(h_vertices, edge_index, edges, size, tot_edges);
+        }
         /**
          Special method for running all iterations with the same vertex-vector.
          This is a hacky solution.
@@ -798,17 +832,19 @@ namespace graphchi {
                         
                         logstream(LOG_INFO) << "Start updates" << std::endl;
                         /* Execute updates */
-                        if (!is_inmemory_mode()) {
+                       /* if (!is_inmemory_mode()) {
                             exec_updates(userprogram, vertices);
-                            /* Load phase after updates (used by the functional engine) */
-                            load_after_updates(vertices);
+                            * Load phase after updates (used by the functional engine) */
+                      /*      load_after_updates(vertices);
                         } else {
 
                             exec_updates_inmemory_mode(userprogram, vertices); 
                         }
                         logstream(LOG_INFO) << "Finished updates" << std::endl;
+                        */
                         
-                        
+                        PageRankAPI(userprogram, vertices, 0);
+
                         /* Save vertices */
                         if (!disable_vertexdata_storage) {
                             save_vertices(vertices);
