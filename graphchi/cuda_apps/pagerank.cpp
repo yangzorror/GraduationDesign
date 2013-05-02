@@ -12,7 +12,7 @@
 #include "graphchi_basic_includes.hpp"
 #include "util/toplist.hpp"
 
-using namespace std;
+//using namespace std;
 using namespace graphchi;
 
 
@@ -29,7 +29,7 @@ bool noprompt = true;
 void Cleanup(bool);
 CUresult CleanupNoFailure();
 void RandomInit(float *, int);
-bool findModulePath(const char *, string &, char **, string &);
+bool findModulePath(const char *, std::string &, char **, std::string &);
 
 int *pArgc = NULL;
 char **pArgv = NULL;
@@ -48,9 +48,9 @@ inline void __checkCudaErrors(CUresult err, const char *file, const int line)
 {
     if (CUDA_SUCCESS != err)
     {
-        fprintf(stderr, "checkCudaErrors() Driver API error = %04d \"%s\" from file <%s>, line %i.\n",
+	std::fprintf(stderr, "checkCudaErrors() Driver API error = %04d \"%s\" from file <%s>, line %i.\n",
                 err, getCudaDrvErrorString(err), file, line);
-        exit(EXIT_FAILURE);
+	exit(EXIT_FAILURE);
     }
 }
 
@@ -62,7 +62,7 @@ inline int cudaDeviceInit(int ARGC, char **ARGV)
     if (CUDA_SUCCESS == err) checkCudaErrors(cuDeviceGetCount(&deviceCount));
     if (deviceCount == 0)
     {
-        fprintf(stderr, "cudaDeviceInit error: no devices supporting CUDA\n");
+	std::fprintf(stderr, "cudaDeviceInit error: no devices supporting CUDA\n");
         exit(EXIT_FAILURE);
     }
     int dev = 0;
@@ -70,10 +70,10 @@ inline int cudaDeviceInit(int ARGC, char **ARGV)
     if (dev < 0) dev = 0;
     if (dev > deviceCount-1)
     {
-        fprintf(stderr, "\n");
-        fprintf(stderr, ">> %d CUDA capable GPU device(s) detected. <<\n", deviceCount);
-        fprintf(stderr, ">> cudaDeviceInit (-device=%d) is not a valid GPU device. <<\n", dev);
-        fprintf(stderr, "\n");
+	std::fprintf(stderr, "\n");
+	std::fprintf(stderr, ">> %d CUDA capable GPU device(s) detected. <<\n", deviceCount);
+	std::fprintf(stderr, ">> cudaDeviceInit (-device=%d) is not a valid GPU device. <<\n", dev);
+	std::fprintf(stderr, "\n");
         return -dev;
     }
     checkCudaErrors(cuDeviceGet(&cuDevice, dev));
@@ -81,7 +81,7 @@ inline int cudaDeviceInit(int ARGC, char **ARGV)
     cuDeviceGetName(name, 100, cuDevice);
     if (checkCmdLineFlag(ARGC, (const char **) ARGV, "quiet") == false)
     {
-        printf("> Using CUDA Device [%d]: %s\n", dev, name);
+      std::printf("> Using CUDA Device [%d]: %s\n", dev, name);
     }
     return dev;
 }
@@ -271,19 +271,20 @@ void Cleanup(bool noError)
 }
 
 bool inline
-findModulePath(const char *module_file, string &module_path, char **argv, string &ptx_source)
+findModulePath(const char *module_file, std::string &module_path, char **argv, std::string &ptx_source)
 {
-    char *actual_path = sdkFindFilePath(module_file, argv[0]);
+    //char *actual_path = sdkFindFilePath(module_file, argv[0]);
+    std::string actual_path = "./pagerank_kernel.ptx";
 
-    if (actual_path)
-    {
+   // if (actual_path != NULL)
+   // {
         module_path = actual_path;
-    }
-    else
+   // }
+    /*else
     {
         printf("> findModulePath file not found: <%s> \n", module_file);
         return false;
-    }
+    }*/
 
     if (module_path.empty())
     {
@@ -294,7 +295,7 @@ findModulePath(const char *module_file, string &module_path, char **argv, string
     {
         printf("> findModulePath found file at <%s>\n", module_path.c_str());
 
-        if (module_path.rfind(".ptx") != string::npos)
+        if (module_path.rfind(".ptx") != std::string::npos)
         {
             FILE *fp = fopen(module_path.c_str(), "rb");
             fseek(fp, 0, SEEK_END);
@@ -322,6 +323,7 @@ struct PagerankProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
 
   void PageRank(float *h_vertices, int *edge_index, float *edges, size_t size, int tot_edges)
   {
+    logstream(LOG_INFO) << tot_edges  << std::endl;
     int argc = NULL;
     char **argv = NULL;
     pArgc = &argc;
@@ -370,7 +372,7 @@ struct PagerankProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
         Cleanup(false);
     }
     // first search for the module path before we load the results
-    string module_path, ptx_source;
+    std::string module_path, ptx_source;
 
     if (!findModulePath(PTX_FILE, module_path, argv, ptx_source))
     {
@@ -386,7 +388,7 @@ struct PagerankProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
     }
 
     // Create module from binary file (PTX or CUBIN)
-    if (module_path.rfind("ptx") != string::npos)
+    if (module_path.rfind("ptx") != std::string::npos)
     {
         // in this branch we use compilation with parameters
         const unsigned int jitNumOptions = 3;
@@ -427,7 +429,7 @@ struct PagerankProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
     if (error != CUDA_SUCCESS) Cleanup(false);
     error = cuMemcpyHtoD(d_edge_index, edge_index, size * 2 * sizeof(int));
     if (error != CUDA_SUCCESS) Cleanup(false);
-    error = cuMemcpyHtoD(d_edges, edges, size * 2 * sizeof(int));
+    error = cuMemcpyHtoD(d_edges, edges, tot_edges * sizeof(float));
 
     /*cudaError_t err = cudaSuccess;
     float *d_vertices = NULL;
@@ -444,7 +446,7 @@ struct PagerankProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
     KernelPageRank<<<blocksPerGrid, threadsPerBlock>>>(d_vertices, d_edge_index, d_edges, size);*/
 
     int threadsPerBlock = 256;
-    int blocksPerGrid   = (N + threadsPerBlock - 1) / threadsPerBlock;
+    int blocksPerGrid   = (size + threadsPerBlock - 1) / threadsPerBlock;
     void *args[] = { &d_vertices, &d_edge_index, &d_edges, &size };
     // Launch the CUDA kernel
     error = cuLaunchKernel(pagerank_kernel,  blocksPerGrid, 1, 1,

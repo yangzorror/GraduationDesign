@@ -57,7 +57,7 @@ ifeq ($(OS_SIZE),32)
   NVCCFLAGS := -m32
   PTX_FILE      := vectorAdd_kernel32.ptx
 else
-  NVCCFLAGS := -m64
+  NVCCFLAGS := -m64 -g -G
   PTX_FILE  := vectorAdd_kernel64.ptx
   ifeq ($(dbg),1)
     CCFLAGS   += -g
