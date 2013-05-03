@@ -1,0 +1,112 @@
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+> Using Device 0: "GeForce G 103M" with Compute 1.1 capability
+> findModulePath found file at <./pagerank_kernel.ptx>
+> initCUDA loading module: <./pagerank_kernel.ptx>
+> PTX JIT log:
+
+Print top 20 vertices:
+1. 163075	764.103
+2. 41909	646.547
+3. 597621	639.205
+4. 537039	606.968
+5. 751384	557.535
+6. 765334	546.867
+7. 384666	539.501
+8. 605856	528.17
+9. 486980	516.398
+10. 504140	503.224
+11. 551829	501.824
+12. 885605	484.024
+13. 173976	474.887
+14. 213432	470.862
+15. 558791	468.306
+16. 32163	465.677
+17. 691633	465.118
+18. 425770	463.351
+19. 908351	457.787
+20. 407610	444.914
+
+ === REPORT FOR pagerank() ===
+[Numeric]
+compression:		1
+execthreads:		1
+loadthreads:		4
+niothreads:		2
+niters:		4
+nshards:		2
+nvertices:		916428
+scheduler:		0
+stripesize:		1.07374e+09
+updates:		3.66571e+06
+work:		4.08403e+07
+[Timings]
+blockload:		0.115696s	 (count: 20, min: 2.8e-05s, max: 0.015191, avg: 0.0057848s)
+commit:		0.94176s	 (count: 12, min: 0.028121s, max: 0.121504, avg: 0.07848s)
+commit_thr:		0.474254s	 (count: 4, min: 0.104424s, max: 0.134055, avg: 0.118563s)
+iomgr_init:		0.00027 s
+memoryshard_create_edges:		5.3708s	 (count: 16, min: 0.182936s, max: 0.477702, avg: 0.335675s)
+memshard_commit:		1.42742s	 (count: 8, min: 0.098539s, max: 0.22751, avg: 0.178428s)
+preada_now:		0.472217s	 (count: 76, min: 1.8e-05s, max: 0.059406, avg: 0.00621338s)
+pwritea_now:		2.37095s	 (count: 44, min: 0.000415s, max: 0.127193, avg: 0.0538851s)
+read_next_vertices:		1.80022s	 (count: 16, min: 0.036356s, max: 0.194564, avg: 0.112514s)
+runtime:		13.7043 s
+stripedio_wait_for_reads:		6e-05s	 (count: 16, min: 2e-06s, max: 5e-06, avg: 3.75e-06s)
+stripedio_wait_for_writes:		3.7e-05s	 (count: 12, min: 2e-06s, max: 4e-06, avg: 3.08333e-06s)
+[Other]
+app:	pagerank
+engine:	default
+file:	MyConf/web-Google.txt
