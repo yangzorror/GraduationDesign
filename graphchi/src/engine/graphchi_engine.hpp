@@ -437,14 +437,15 @@ namespace graphchi {
             m.stop_time(me, "execute-updates");
         }
         
-	void PageRankAPI(GraphChiProgram<VertexDataType, EdgeDataType, svertex_t> &userprogram, std::vector<svertex_t> &pr_vertices, graphchi_context &ginfo)
+	void PageRankAPI(GraphChiProgram<VertexDataType, EdgeDataType, svertex_t> &userprogram, std::vector<svertex_t> &pr_vertices, int iter)
 	{
 	  size_t size = pr_vertices.size();
 	  float *h_vertices = (float *)malloc(size * sizeof(float));
+	  int *edge_num = (int *)malloc(size * 2 * sizeof(int));
 	  int *edge_index = (int *)malloc(size * 2 * sizeof(int));
 	  int tot_edges = 0;
 
-          if (ginfo.iteration == 0){
+          if (iter == 0){
             for(int vid=sub_interval_st; vid <= (int)sub_interval_en; vid++) {
               svertex_t & v = pr_vertices[vid - sub_interval_st];
               v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
@@ -456,33 +457,58 @@ namespace graphchi {
             }
             return;
           }
+
           int i=0;
+
 	  for(int vid=sub_interval_st; vid <= (int)sub_interval_en; vid++) {
-            i++;
             svertex_t & v = pr_vertices[vid - sub_interval_st];
             v.dataptr = vertex_data_handler->vertex_data_ptr(vid);
-	    tot_edges = tot_edges + pr_vertices[vid].num_outedges() + pr_vertices[vid].num_inedges();
-	    edge_index[i * 2 + 1] = pr_vertices[vid].num_outedges();
-	    edge_index[i*2] = pr_vertices[vid].num_inedges();
-	    h_vertices[i] = pr_vertices[vid].get_data();
+	    edge_num[i * 2] = v.num_inedges();
+	    edge_num[i * 2 + 1] = v.num_outedges();
+            edge_index[i * 2] = tot_edges;
+	    edge_index[i * 2 + 1] = tot_edges + v.num_inedges();
+	    tot_edges = tot_edges + v.num_outedges() + v.num_inedges();
+	    h_vertices[i] = v.get_data();
+	    i++;
 	  }
 
 	  float *edges = (float *)malloc(tot_edges * sizeof(float));
           int j = 0;
           for(int vid=sub_interval_st; vid <= (int)sub_interval_en; vid++) {
             svertex_t & v = pr_vertices[vid - sub_interval_st];
-	    for (int k = 0; k < pr_vertices[vid].num_inedges(); k++)
+	    for (int k = 0; k < v.num_inedges(); k++)
 	    {
-	      edges[j] = pr_vertices[vid].inedge(k)->get_data();
+	      edges[j] = v.inedge(k)->get_data();
               j++;
             }
-	    for (int k = 0; k < pr_vertices[vid].num_outedges(); k++)
+	    for (int k = 0; k < v.num_outedges(); k++)
 	    {
-	      edges[j] = pr_vertices[vid].outedge(k)->get_data();
+	      edges[j] = v.outedge(k)->get_data();
 	      j++;
 	    }
 	  }
-	  userprogram.PageRank(h_vertices, edge_index, edges, size, tot_edges);
+
+	  userprogram.PageRank(h_vertices, edge_num, edge_index, edges, size, tot_edges);
+          
+          i = 0;
+	  for(int vid=sub_interval_st; vid <= (int)sub_interval_en; vid++) {
+	    svertex_t & v = pr_vertices[vid - sub_interval_st];
+	    v.set_data(h_vertices[vid - sub_interval_st]);
+            for (int k = 0; k < v.num_inedges(); k++)
+	    {
+	      v.inedge(k)->set_data(edges[i]);
+	      i++;
+	    }
+	    for (int k = 0; k < v.num_outedges(); k++)
+	    {
+	      v.outedge(k)->set_data(edges[i]);
+              i++;
+	    }
+	  }
+          free(h_vertices);
+	  free(edge_num);
+          free(edge_index);
+	  free(edges);
         }
         /**
          Special method for running all iterations with the same vertex-vector.
@@ -858,7 +884,7 @@ namespace graphchi {
                         logstream(LOG_INFO) << "Finished updates" << std::endl;
                         */
                         
-                        PageRankAPI(userprogram, vertices, chicontext);
+                        PageRankAPI(userprogram, vertices, iter);
 
                         /* Save vertices */
                         if (!disable_vertexdata_storage) {

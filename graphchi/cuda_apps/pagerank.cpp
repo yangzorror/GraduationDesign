@@ -23,6 +23,7 @@ CUfunction pagerank_kernel;
 CUdeviceptr d_vertices;
 CUdeviceptr d_edge_index;
 CUdeviceptr d_edges;
+CUdeviceptr d_edge_num;
 bool noprompt = true;
 
 // Functions
@@ -244,6 +245,7 @@ CUresult CleanupNoFailure()
     if (d_vertices) error = cuMemFree(d_vertices);
     if (d_edge_index) error = cuMemFree(d_edge_index);
     if (d_edges) error = cuMemFree(d_edges);
+    if (d_edge_num) error = cuMemFree(d_edge_num);
     // Free host memory
     //if (h_A) free(h_A);
     //if (h_B) free(h_B);
@@ -321,14 +323,14 @@ typedef float EdgeDataType;
 
 struct PagerankProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
 
-  void PageRank(float *h_vertices, int *edge_index, float *edges, size_t size, int tot_edges)
+  void PageRank(float *h_vertices, int *edge_num, int *edge_index, float *edges, size_t size, int tot_edges)
   {
     logstream(LOG_INFO) << tot_edges  << std::endl;
     int argc = NULL;
     char **argv = NULL;
     pArgc = &argc;
     pArgv = argv;
-    int N = 50000, devID = 0;
+    int devID = 0;
     CUresult error;
     // Initialize
     checkCudaErrors(cuInit(0));
@@ -419,18 +421,18 @@ struct PagerankProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
     if (error != CUDA_SUCCESS) Cleanup(false);
     // Allocate vectors in device memory
     error = cuMemAlloc(&d_vertices, size * sizeof(float));
-    if (error != CUDA_SUCCESS) Cleanup(false);
-    error = cuMemAlloc(&d_edge_index, size * 2 * sizeof(float));
-    if (error != CUDA_SUCCESS) Cleanup(false);
+    error = cuMemAlloc(&d_edge_num, size * 2 * sizeof(int));
+    error = cuMemAlloc(&d_edge_index, size * 2 * sizeof(int));
     error = cuMemAlloc(&d_edges, tot_edges *  sizeof(float));
     if (error != CUDA_SUCCESS) Cleanup(false);
+    
     // Copy vectors from host memory to device memory
     error = cuMemcpyHtoD(d_vertices, h_vertices, size * sizeof(float));
-    if (error != CUDA_SUCCESS) Cleanup(false);
+    error = cuMemcpyHtoD(d_edge_num, edge_num, size * 2 * sizeof(int));
     error = cuMemcpyHtoD(d_edge_index, edge_index, size * 2 * sizeof(int));
-    if (error != CUDA_SUCCESS) Cleanup(false);
     error = cuMemcpyHtoD(d_edges, edges, tot_edges * sizeof(float));
-
+    if (error != CUDA_SUCCESS) Cleanup(false);
+    
     /*cudaError_t err = cudaSuccess;
     float *d_vertices = NULL;
     err = cudaMalloc((void **)&d_vertices, size * sizeof(float));
@@ -447,15 +449,20 @@ struct PagerankProgram : public GraphChiProgram<VertexDataType, EdgeDataType> {
 
     int threadsPerBlock = 256;
     int blocksPerGrid   = (size + threadsPerBlock - 1) / threadsPerBlock;
-    void *args[] = { &d_vertices, &d_edge_index, &d_edges, &size };
+    void *args[] = { &d_vertices, &d_edge_index, &d_edges, &d_edge_num , &size };
     // Launch the CUDA kernel
     error = cuLaunchKernel(pagerank_kernel,  blocksPerGrid, 1, 1,
                                threadsPerBlock, 1, 1,
                                0,
                                NULL, args, NULL);
     if (error != CUDA_SUCCESS) Cleanup(false);
-    //error = cuMemcpyDtoH(h_C, d_C, size);
-    //if (error != CUDA_SUCCESS) Cleanup(false);
+    error = cuCtxSynchronize();
+
+    error = cuMemcpyDtoH(h_vertices, d_vertices, size * sizeof(float));
+    error = cuMemcpyDtoH(edges, d_edges, tot_edges * sizeof(float));
+    if (error != CUDA_SUCCESS) Cleanup(false);
+    error = CleanupNoFailure();
+    logstream(LOG_INFO)<<"Cu Work Done.\n";
   } 
 
   void before_iteration(int iteration, graphchi_context &info) {

@@ -54,10 +54,10 @@ endif
 
 # OS-architecture specific flags
 ifeq ($(OS_SIZE),32)
-  NVCCFLAGS := -m32
+  NVCCFLAGS := -m32 -g -G
   PTX_FILE      := vectorAdd_kernel32.ptx
 else
-  NVCCFLAGS := -m64 -g -G
+  NVCCFLAGS := -m64
   PTX_FILE  := vectorAdd_kernel64.ptx
   ifeq ($(dbg),1)
     CCFLAGS   += -g
@@ -94,7 +94,7 @@ tests: tests/basic_smoketest tests/bulksync_functional_test tests/dynamicdata_sm
 
 build: pagerank pagerank_kernel.ptx
 
-pagerank_kernel.ptx: cuda_apps/pagerank.cu
+pagerank_kernel.ptx: cuda_apps/pagerank_kernel.cu
 	@mkdir -p cuda_bin
 	$(NVCC) $(NVCCFLAGS) $(EXTRA_NVCCFLAGS) $(INCLUDES) -o $@ -ptx $<
 	@cp $@ cuda_bin
